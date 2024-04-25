@@ -15,6 +15,7 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import SortableContainer from "./SortableContainer";
 import Item from "./Item";
+import PapaParse from "papaparse";
 
 const Contaienr = () => {
   // ドラッグ&ドロップでソート可能なリスト
@@ -25,7 +26,22 @@ const Contaienr = () => {
     container2: ["D", "E", "F"],
     container3: ["G", "H", "I"],
     container4: [],
+    container5: [],
+    container6: [],
   });
+
+  const jsonItem = {
+    "処理ターム": "1",
+    "印刷機": "A2",
+    "受注番号": "23106308",
+    "投入数量": "8000",
+    "出荷予定日": "2023/12/7",
+    "残り日数": "5",
+    "スコア": "10",
+    "色変更コスト": "9",
+    "色": "5(表：0 × 裏：5)、K/C/M/Y/白",
+    "": ""
+};
 
   //DragOverlay用のid
   const [activeId, setActiveId] = useState<UniqueIdentifier>();
@@ -79,6 +95,13 @@ const Contaienr = () => {
       return;
     }
 
+    setItems(prevItems => {
+      return {
+          ...prevItems,
+          container5: Object.values(jsonItem)
+      };
+  });
+  
     setItems((prev) => {
       // 移動元のコンテナの要素配列を取得
       const activeItems = prev[activeContainer];
@@ -168,22 +191,32 @@ const Contaienr = () => {
         <SortableContainer
           id="container1"
           items={items.container1}
-          label="container1"
+          label="印刷機1"
         />
         <SortableContainer
           id="container2"
-          label="container2"
+          label="印刷機2"
           items={items.container2}
         />
         <SortableContainer
           id="container3"
-          label="container3"
+          label="印刷機3"
           items={items.container3}
         />
         <SortableContainer
           id="container4"
-          label="container4"
+          label="印刷機4"
           items={items.container4}
+        />
+        <SortableContainer
+          id="container5"
+          label="印刷機5"
+          items={items.container5}
+        />
+        <SortableContainer
+          id="container6"
+          label="印刷機6"
+          items={items.container6}
         />
         {/* DragOverlay */}
         <DragOverlay>{activeId ? <Item id={activeId} /> : null}</DragOverlay>
