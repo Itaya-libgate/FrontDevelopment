@@ -15,10 +15,8 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import SortableContainer from "./SortableContainer";
 import Item from "./Item";
-import PapaParse from "papaparse";
 
-const Contaienr = () => {
-  // ドラッグ&ドロップでソート可能なリスト
+const Container = () => {
   const [items, setItems] = useState<{
     [key: string]: string[];
   }>({
@@ -26,27 +24,32 @@ const Contaienr = () => {
     container2: ["D", "E", "F"],
     container3: ["G", "H", "I"],
     container4: [],
-    container5: [],
+    container5: [
+      "1",
+      "A1",
+      "23105449",
+      "8000",
+      "2023/12/8",
+      "6",
+      "100",
+      "0",
+      "5(表：0 × 裏：5)、墨/C/M/Y/白",
+      "",
+      "1",
+      "A2",
+      "23106308",
+      "8000",
+      "2023/12/7",
+      "5",
+      "10",
+      "9",
+      "5(表：0 × 裏：5)、K/C/M/Y/白",
+    ],
     container6: [],
   });
 
-  const jsonItem = {
-    "処理ターム": "1",
-    "印刷機": "A2",
-    "受注番号": "23106308",
-    "投入数量": "8000",
-    "出荷予定日": "2023/12/7",
-    "残り日数": "5",
-    "スコア": "10",
-    "色変更コスト": "9",
-    "色": "5(表：0 × 裏：5)、K/C/M/Y/白",
-    "": ""
-};
-
-  //DragOverlay用のid
   const [activeId, setActiveId] = useState<UniqueIdentifier>();
 
-  // ドラッグの開始、移動、終了などにどのような入力を許可するかを決めるprops
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -54,7 +57,6 @@ const Contaienr = () => {
     })
   );
 
-  //各コンテナ取得関数
   const findContainer = (id: UniqueIdentifier) => {
     if (id in items) {
       return id;
@@ -64,26 +66,19 @@ const Contaienr = () => {
     );
   };
 
-  // ドラッグ開始時に発火する関数
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    //ドラッグしたリソースのid
     const id = active.id.toString();
     setActiveId(id);
   };
 
-  //ドラッグ可能なアイテムがドロップ可能なコンテナの上に移動時に発火する関数
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
-    //ドラッグしたリソースのid
     const id = active.id.toString();
-    //ドロップした場所にあったリソースのid
     const overId = over?.id;
 
     if (!overId) return;
 
-    // ドラッグ、ドロップ時のコンテナ取得
-    // container1,container2,container3,container4のいずれかを持つ
     const activeContainer = findContainer(id);
     const overContainer = findContainer(over?.id);
 
@@ -95,61 +90,45 @@ const Contaienr = () => {
       return;
     }
 
-    setItems(prevItems => {
-      return {
-          ...prevItems,
-          container5: Object.values(jsonItem)
-      };
-  });
-  
-    setItems((prev) => {
-      // 移動元のコンテナの要素配列を取得
-      const activeItems = prev[activeContainer];
-      // 移動先のコンテナの要素配列を取得
-      const overItems = prev[overContainer];
+    const activeItems = items[activeContainer];
+    const overItems = items[overContainer];
 
-      // 配列のインデックス取得
-      const activeIndex = activeItems.indexOf(id);
-      const overIndex = overItems.indexOf(overId.toString());
+    const activeIndex = activeItems.indexOf(id);
+    const overIndex = overItems.indexOf(overId.toString());
 
-      let newIndex;
-      if (overId in prev) {
-        // We're at the root droppable of a container
-        newIndex = overItems.length + 1;
-      } else {
-        const isBelowLastItem = over && overIndex === overItems.length - 1;
+    let newIndex;
+    if (overId in items) {
+      newIndex = overItems.length;
+    } else {
+      const isBelowLastItem =
+        over && overIndex === overItems.length - 1;
 
-        const modifier = isBelowLastItem ? 1 : 0;
+      const modifier = isBelowLastItem ? 1 : 0;
 
-        newIndex = overIndex >= 0 ? overIndex + modifier : overItems.length + 1;
-      }
+      newIndex =
+        overIndex >= 0 ? overIndex + modifier : overItems.length;
+    }
 
-      return {
-        ...prev,
-        [activeContainer]: [
-          ...prev[activeContainer].filter((item) => item !== active.id),
-        ],
-        [overContainer]: [
-          ...prev[overContainer].slice(0, newIndex),
-          items[activeContainer][activeIndex],
-          ...prev[overContainer].slice(newIndex, prev[overContainer].length),
-        ],
-      };
-    });
+    setItems((prev) => ({
+      ...prev,
+      [activeContainer]: [
+        ...prev[activeContainer].filter((item) => item !== id),
+      ],
+      [overContainer]: [
+        ...prev[overContainer].slice(0, newIndex),
+        id,
+        ...prev[overContainer].slice(newIndex),
+      ],
+    }));
   };
 
-  // ドラッグ終了時に発火する関数
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    //ドラッグしたリソースのid
     const id = active.id.toString();
-    //ドロップした場所にあったリソースのid
     const overId = over?.id;
 
     if (!overId) return;
 
-    // ドラッグ、ドロップ時のコンテナ取得
-    // container1,container2,container3,container4のいずれかを持つ
     const activeContainer = findContainer(id);
     const overContainer = findContainer(over?.id);
 
@@ -161,7 +140,6 @@ const Contaienr = () => {
       return;
     }
 
-    // 配列のインデックス取得
     const activeIndex = items[activeContainer].indexOf(id);
     const overIndex = items[overContainer].indexOf(overId.toString());
 
@@ -178,6 +156,9 @@ const Contaienr = () => {
     setActiveId(undefined);
   };
 
+  // 新しいコンテナを追加して、すべての値を結合して表示
+  const allValues = Object.values(items).flat();
+
   return (
     <div className="flex flex-row mx-auto">
       <DndContext
@@ -187,42 +168,18 @@ const Contaienr = () => {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        {/* SortableContainer */}
-        <SortableContainer
-          id="container1"
-          items={items.container1}
-          label="印刷機1"
-        />
-        <SortableContainer
-          id="container2"
-          label="印刷機2"
-          items={items.container2}
-        />
-        <SortableContainer
-          id="container3"
-          label="印刷機3"
-          items={items.container3}
-        />
-        <SortableContainer
-          id="container4"
-          label="印刷機4"
-          items={items.container4}
-        />
-        <SortableContainer
-          id="container5"
-          label="印刷機5"
-          items={items.container5}
-        />
-        <SortableContainer
-          id="container6"
-          label="印刷機6"
-          items={items.container6}
-        />
-        {/* DragOverlay */}
+        {/* 新しいコンテナにすべての値を表示 */}
+        <SortableContainer id="all" label="全注文" items={allValues} />
+        <SortableContainer id="container1" items={items.container1} label="印刷機1" />
+        <SortableContainer id="container2" label="印刷機2" items={items.container2} />
+        <SortableContainer id="container3" label="印刷機3" items={items.container3} />
+        <SortableContainer id="container4" label="印刷機4" items={items.container4} />
+        <SortableContainer id="container5" label="印刷機5" items={items.container5} />
+        <SortableContainer id="container6" label="印刷機6" items={items.container6} />
         <DragOverlay>{activeId ? <Item id={activeId} /> : null}</DragOverlay>
       </DndContext>
     </div>
   );
 };
 
-export default Contaienr;
+export default Container;
