@@ -1,0 +1,38 @@
+.container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px; /* マージンをpaddingに変更 */
+}
+
+.upload {
+  margin-bottom: 20px;
+}
+
+.sortable-container {
+  flex-grow: 1;
+  border: 2px solid #ccc;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 20px;
+  overflow-y: auto; /* スクロール可能に */
+}
+
+.drag-overlay {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.item {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 5px;
+  margin-bottom: 5px;
+  cursor: pointer;
+}
+
+.item.active {
+  background-color: #f0f0f0;
+}

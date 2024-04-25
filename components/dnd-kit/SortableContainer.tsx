@@ -14,19 +14,21 @@ const SortableContainer = ({
   const { setNodeRef } = useDroppable({
     id,
   });
+
   return (
-    <div className="w-[calc(33%-5px)]">
+    <div className="flex flex-col" style={{ margin: "0 10px" }}> {/* ここで margin を追加 */}
       <h3 className="text-xl font-bold text-center">{label}</h3>
-      <SortableContext id={id} items={items} strategy={rectSortingStrategy}>
-        <div
-          ref={setNodeRef}
-          className="w-full border-2 border-gray-500/75 p-5 mt-2 rounded-md"
-        >
+      <div
+        ref={setNodeRef}
+        className="flex flex-wrap border-2 border-gray-500/75 p-2 mt-2 rounded-md"
+        style={{ minHeight: "80px", minWidth: "210px" }} // コンテナの高さと幅を変更
+      >
+        <SortableContext id={id} items={items} strategy={rectSortingStrategy}>
           {items.map((id: string) => (
             <SortableItem key={id} id={id} />
           ))}
-        </div>
-      </SortableContext>
+        </SortableContext>
+      </div>
     </div>
   );
 };
