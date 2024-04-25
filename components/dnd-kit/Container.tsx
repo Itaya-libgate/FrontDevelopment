@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Papa from "papaparse";
 import {
   DndContext,
   DragOverlay,
@@ -20,31 +21,12 @@ const Container = () => {
   const [items, setItems] = useState<{
     [key: string]: string[];
   }>({
-    container1: ["A", "B", "C"],
-    container2: ["D", "E", "F"],
-    container3: ["G", "H", "I"],
+    allOrders: [],
+    container1: [],
+    container2: [],
+    container3: [],
     container4: [],
-    container5: [
-      "1",
-      "A1",
-      "23105449",
-      "8000",
-      "2023/12/8",
-      "6",
-      "100",
-      "0",
-      "5(表：0 × 裏：5)、墨/C/M/Y/白",
-      "",
-      "1",
-      "A2",
-      "23106308",
-      "8000",
-      "2023/12/7",
-      "5",
-      "10",
-      "9",
-      "5(表：0 × 裏：5)、K/C/M/Y/白",
-    ],
+    container5: [],
     container6: [],
   });
 
@@ -156,8 +138,17 @@ const Container = () => {
     setActiveId(undefined);
   };
 
-  // 新しいコンテナを追加して、すべての値を結合して表示
-  const allValues = Object.values(items).flat();
+  // CSVファイルを読み込んで注文情報をセットする関数
+  const handleCSVUpload = (file: File) => {
+    Papa.parse(file, {
+      complete: (result) => {
+        const orders = result.data.flat();
+        setItems((prev) => ({ ...prev, allOrders: orders }));
+      },
+      header: false,
+      encoding: "Shift-JIS",
+    });
+  };
 
   return (
     <div className="flex flex-row mx-auto">
@@ -168,14 +159,23 @@ const Container = () => {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
+        {/* CSVファイルをアップロードする部分 */}
+        <div>
+          <input type="file" accept=".csv" onChange={(event) => handleCSVUpload(event.target.files?.[0])} />
+        </div>
+
         {/* 新しいコンテナにすべての値を表示 */}
-        <SortableContainer id="all" label="全注文" items={allValues} />
-        <SortableContainer id="container1" items={items.container1} label="印刷機1" />
-        <SortableContainer id="container2" label="印刷機2" items={items.container2} />
-        <SortableContainer id="container3" label="印刷機3" items={items.container3} />
-        <SortableContainer id="container4" label="印刷機4" items={items.container4} />
-        <SortableContainer id="container5" label="印刷機5" items={items.container5} />
-        <SortableContainer id="container6" label="印刷機6" items={items.container6} />
+        <SortableContainer key="allOrders" id="allOrders" label="注文一覧" items={items.allOrders} />
+        {Object.entries(items).map(([containerId, containerItems]) => {
+          if (containerId !== "allOrders") {
+            const machineNumber = parseInt(containerId.replace("container", ""));
+            return (
+              <SortableContainer key={containerId} id={containerId} label={`印刷機${machineNumber}`} items={containerItems} />
+            );
+          }
+          return null;
+        })}
+
         <DragOverlay>{activeId ? <Item id={activeId} /> : null}</DragOverlay>
       </DndContext>
     </div>
